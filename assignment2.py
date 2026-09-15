@@ -6,20 +6,19 @@ import sys
 import urllib.error
 import urllib.request
 
+
 # -------------------------------------------------------------------
-# Function 1: Setup Logger
+# 1. Logger Setup
+# Requirement 2 & 3: Logs errors to 'errors.log' in the required format
 # -------------------------------------------------------------------
 def setupLogger():
-    """Configures the 'assignment2' logger to write log messages to errors.log."""
     logger = logging.getLogger("assignment2")
     logger.setLevel(logging.ERROR)
 
-    # File handler to output logs to errors.log
     file_handler = logging.FileHandler("errors.log", mode="w")
-    formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+    formatter = logging.Formatter("%(message)s")
     file_handler.setFormatter(formatter)
 
-    # Avoid adding multiple handlers if setupLogger is called multiple times
     if not logger.handlers:
         logger.addHandler(file_handler)
 
@@ -27,19 +26,19 @@ def setupLogger():
 
 
 # -------------------------------------------------------------------
-# Function 2: downloadData
+# 2. Download Data Function
+# Requirement 1: Downloads content from any given URL without catching exceptions internally
 # -------------------------------------------------------------------
 def downloadData(url):
-    """Downloads content from the provided URL."""
     with urllib.request.urlopen(url) as response:
         return response.read()
 
 
 # -------------------------------------------------------------------
-# Function 3: processData
+# 3. Process Data Function
+# Requirement 3: Processes lines and logs malformed/invalid dates to assignment2 logger
 # -------------------------------------------------------------------
 def processData(file_contents):
-    """Parses CSV contents line-by-line into a dictionary mapping ID -> (Name, Birthday)."""
     logger = logging.getLogger("assignment2")
     person_dict = {}
 
@@ -69,10 +68,10 @@ def processData(file_contents):
 
 
 # -------------------------------------------------------------------
-# Function 4: displayPerson
+# 4. Display Person Function
+# Requirement 4: Displays users with exact required formatting
 # -------------------------------------------------------------------
 def displayPerson(id, personData):
-    """Prints the person's name and birthday if found in personData."""
     if id in personData:
         name, birthday = personData[id]
         formatted_date = birthday.strftime("%Y-%m-%d")
@@ -82,10 +81,10 @@ def displayPerson(id, personData):
 
 
 # -------------------------------------------------------------------
-# Function 5: main
+# 5. Main Execution Function
+# Requirement 1 & 5: Handles CLI argument, catches download errors, and loops until ID <= 0
 # -------------------------------------------------------------------
 def main():
-    # 1. Parse CLI arguments
     parser = argparse.ArgumentParser(
         description="Download and process CSV birthday data."
     )
@@ -97,33 +96,32 @@ def main():
     )
     args = parser.parse_args()
 
-    # Configure logger
     setupLogger()
 
-    # 2. Download Data with Exception Handling
+    # Step 2: Download data with main-level exception handling
     try:
         csvData = downloadData(args.url)
     except Exception as e:
-        print(
-            f"ERROR: Failed to download data from the provided URL. Details: {e}"
-        )
+        print(f"ERROR: Unable to download data from provided URL. Details: {e}")
         sys.exit(1)
 
-    # 4. Process Data
+    # Step 4: Process CSV data into dictionary
     personData = processData(csvData)
 
-    # 5. Interactive Prompt Loop
+    # Step 5: Interactive lookup loop
     while True:
         try:
             user_input = int(
                 input(
-                    "\nEnter a person ID to lookup (enter 0 or negative number to exit): "
+                    "Enter a person ID to lookup (enter 0 or negative number to exit): "
                 )
             )
+
+            # Requirement 5: Exit if ID <= 0
             if user_input <= 0:
-                print("Exiting program.")
                 sys.exit(0)
 
+            # Requirement 4: Print person details or 'No user found' message
             displayPerson(user_input, personData)
 
         except ValueError:
